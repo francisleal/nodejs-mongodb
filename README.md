@@ -7,3 +7,5 @@
 `yarn add express`
 
 `yarn add mongoose`
+
+`yarn add jsonwebtoken`
