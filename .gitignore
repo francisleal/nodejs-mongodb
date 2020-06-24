@@ -1,5 +1,9 @@
 target
 node_modules
+src/config
 
 package-lock.json
 yarn.lock
+
+anotacoes.txt
+

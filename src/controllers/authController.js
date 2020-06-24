@@ -1,6 +1,9 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const authConfig = require('../config/auth.json')
+const crypto = require('crypto');
+
+const mailer = require('../mailer/mailer');
+const authConfig = require('../config/auth.json');
 
 const User = require('../models/User');
 
@@ -16,6 +19,7 @@ function generateToken(params = {}) {
 // end-point /auth/register
 router.post('/register', async (request, response) => {
 
+    // pega o email que vem da requisição
     const { email } = request.body;
 
     try {
@@ -44,6 +48,7 @@ router.post('/register', async (request, response) => {
 router.post('/authenticate', async (request, response) => {
     const { email, password } = request.body;
 
+    // usa o metodo 'select' para trazer password do mongodb
     const user = await User.findOne({ email }).select('+password');
 
     if (!user) {
@@ -61,5 +66,80 @@ router.post('/authenticate', async (request, response) => {
         token: generateToken({ id: user.id })
     });
 });
+
+router.post('/forgot_password', async (request, response) => {
+    const { email } = request.body;
+
+    try {
+        const user = await User.findOne({ email });
+
+        // gera um token utilizando 'crypto do nodejs'
+        const token = crypto.randomBytes(20).toString('hex');
+        const now = new Date();
+
+        // set a data de inspiração do token em 1 hora
+        now.setHours(now.getHours() + 1);
+
+        if (!user) {
+            return response.status(400).send({ error: 'User not found' });
+        }
+
+        // atualiza o banco de dados
+        await User.findByIdAndUpdate(user.id, {
+            '$set': {
+                passwordResetToken: token,
+                passwordResetTokenExpires: now,
+            }
+        });
+
+        // mailer.sendMail({
+        //     to: email,
+        //     from: 'francisleal1066@gmail.com',
+        //     subject: "Hello ✔",
+        //     text: `Informe o Token para recuperar sua senha - ${token}`,
+        //     html: `Informe o Token para recuperar sua senha - <b>${token}</b>`,
+        // }, (err) => {
+        //     if (err) {
+        //         return response.status(400).send({ error: 'Cannot send forgot password email' })
+        //     }
+        //     return response.send();
+        // });
+
+        return response.send({ token });
+
+    } catch (error) {
+        response.status(400).send({ error: 'User not found!' });
+    }
+});
+
+router.post('/reset_password', async (request, response) => {
+    const { email, token, password } = request.body;
+
+    try {
+        const user = await User.findOne({ email }).select('+passwordResetToken passwordResetTokenExpires');
+        const now = new Date();
+
+        if (!user) {
+            return response.status(400).send({ error: 'User not found' });
+        }
+
+        if (token !== user.passwordResetToken) {
+            return response.status(400).send({ error: 'Token invalid' })
+        }
+
+        if (now > user.passwordResetTokenExpires) {
+            return response.status(400).send({ error: 'Token expired, generate a new one' });
+        }
+
+        user.password = password;
+
+        await user.save();
+
+        response.send({ sucess: 'Senha alterada com sucesso!' });
+
+    } catch (error) {
+        return response.status(400).send({ error: 'User not found for reset_password' });
+    }
+})
 
 module.exports = app => app.use('/auth', router);

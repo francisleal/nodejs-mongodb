@@ -9,3 +9,5 @@
 `yarn add mongoose`
 
 `yarn add jsonwebtoken`
+
+`yarn add nodemailer`

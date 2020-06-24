@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 
-const uri = '';
-const config = { 
-    useNewUrlParser: true, 
-    useUnifiedTopology: true 
+const { uri } = require('../config/mongoUri.json');
+
+const config = {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false
 }
 
 mongoose.connect(uri, config);
