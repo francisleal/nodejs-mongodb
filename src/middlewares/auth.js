@@ -6,14 +6,14 @@ module.exports = (request, response, next) => {
     // variavel da requisição do Header de autorização
     const authHeader = request.headers.authorization;
 
-    // separa o token em duas partes 'Bearer' + token
-    const parts = authHeader.split(' ');
-    const [bearer, token] = parts;
-
     // verifica se não possi token
     if (!authHeader) {
         return response.status(401).send({ error: 'No token provided' });
     }
+
+    // separa o token em duas partes 'Bearer' + token
+    const parts = authHeader.split(' ');
+    const [bearer, token] = parts;
 
     // verifica se o token está completo
     if (parts.length !== 2) {

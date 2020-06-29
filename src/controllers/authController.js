@@ -4,6 +4,7 @@ const crypto = require('crypto');
 
 const mailer = require('../mailer/mailer');
 const authConfig = require('../config/auth.json');
+const mailCOnfig = require('../config/mail.json')
 
 const User = require('../models/User');
 
@@ -74,7 +75,7 @@ router.post('/forgot_password', async (request, response) => {
         const user = await User.findOne({ email });
 
         // gera um token utilizando 'crypto do nodejs'
-        const token = crypto.randomBytes(20).toString('hex');
+        const token = crypto.randomBytes(5).toString('hex');
         const now = new Date();
 
         // set a data de inspiração do token em 1 hora
@@ -92,20 +93,18 @@ router.post('/forgot_password', async (request, response) => {
             }
         });
 
-        // mailer.sendMail({
-        //     to: email,
-        //     from: 'francisleal1066@gmail.com',
-        //     subject: "Hello ✔",
-        //     text: `Informe o Token para recuperar sua senha - ${token}`,
-        //     html: `Informe o Token para recuperar sua senha - <b>${token}</b>`,
-        // }, (err) => {
-        //     if (err) {
-        //         return response.status(400).send({ error: 'Cannot send forgot password email' })
-        //     }
-        //     return response.send();
-        // });
-
-        return response.send({ token });
+        mailer.sendMail({
+            to: email,
+            from: mailCOnfig.user,
+            subject: "Hello ✔",
+            text: `Informe o Token para recuperar sua senha - ${token}`,
+            html: `Informe o Token para recuperar sua senha - <b>${token}</b>`,
+        }, (err) => {
+            if (err) {
+                return response.status(400).send({ error: 'Cannot send forgot password email' })
+            }
+            return response.send({ token });
+        });
 
     } catch (error) {
         response.status(400).send({ error: 'User not found!' });

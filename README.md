@@ -11,3 +11,5 @@
 `yarn add jsonwebtoken`
 
 `yarn add nodemailer`
+
+`npm i cors`
