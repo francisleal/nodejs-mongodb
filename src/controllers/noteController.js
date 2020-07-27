@@ -11,7 +11,14 @@ router.get('/', async (request, response) => {
         // procura todos as anotações que tem o relacionamento user
         const note = await Note.find().populate('user');
 
-        return response.send({ note });
+        // recupera o valor do usuário logado na request
+        const userLoggedID = request.userLoggedID;
+
+        // filtra pelos usuários logado
+        const noteUserLogged = note.filter(note => note.user._id == userLoggedID);
+
+        // retona apenas as notas dos usuários logado
+        return response.send({ noteUserLogged });
 
     } catch (err) {
         return response.status(400).send({ error: 'Error loading new Note' });
